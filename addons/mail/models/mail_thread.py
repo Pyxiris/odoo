@@ -1403,8 +1403,10 @@ class MailThread(models.AbstractModel):
             if parent_message and parent_message.author_id:
                 if message_dict.get('is_internal'):
                     partner_ids = [parent_message.author_id.id]
-                elif parent_message.author_id.partner_share:
-                    partner_ids = [parent_message.author_id.id]
+                # Customization for mail_disable_relay_notification: Never notify a partner if he is not
+                # explicitly listed in incoming_email_to/cc. Let's avoid unnecessary drama.
+                # elif parent_message.author_id.partner_share:
+                #     partner_ids = [parent_message.author_id.id]
 
             post_params = dict(
                 incoming_email_cc=message_dict.pop('cc_filtered', False),
