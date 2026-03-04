@@ -23,16 +23,16 @@ import { loadJS } from "@web/core/assets";
  */
 export function hidePDFJSButtons(rootElement, options = {}) {
     const hiddenElements = [
-        "#editorModeButtons",
+        // "#editorModeButtons",
         "button#openFile",
         "button#secondaryOpenFile",
         "a#viewBookmark",
         "a#secondaryViewBookmark",
     ];
-    if (options.hideDownload || isMobileOS()) {
+    if (options.hideDownload) {
         hiddenElements.push(["button#downloadButton", "button#secondaryDownload"]);
     }
-    if (options.hidePrint || isMobileOS()) {
+    if (options.hidePrint) {
         hiddenElements.push(["button#printButton", "button#secondaryPrint"]);
     }
     if (options.hidePresentation) {
