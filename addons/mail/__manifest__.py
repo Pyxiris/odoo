@@ -127,6 +127,8 @@ For more specific needs, you may also assign custom-defined actions
         "data/mail_canned_response_data.xml",
         'data/mail_templates_invite.xml',
         'data/web_tour_tour.xml',
+        # Pyxiris_patch: always_handle_notifications_in_odoo
+        'data/pyxiris_always_handle_notifications_in_odoo.xml',
     ],
     'demo': [
         'demo/mail_activity_demo.xml',
