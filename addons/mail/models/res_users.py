@@ -82,6 +82,17 @@ class ResUsers(models.Model):
         # when it's not `mail.group_mail_notification_type_inbox` or `share` that are being changed.
         inbox_group_id = self.env['ir.model.data']._xmlid_to_res_id('mail.group_mail_notification_type_inbox')
 
+        # Pyxiris_patch: always_handle_notifications_in_odoo
+        # Force all internal users to inbox group.
+        internal_missing_group = self.filtered_domain([
+            ('share', '=', False),
+            ('group_ids', 'not in', inbox_group_id),
+        ])
+        if inbox_group_id and internal_missing_group:
+            internal_missing_group.write({
+                'group_ids': [Command.link(inbox_group_id)],
+            })
+
         self.filtered_domain([
             ('group_ids', 'in', inbox_group_id), ('notification_type', '!=', 'inbox')
         ]).notification_type = 'inbox'

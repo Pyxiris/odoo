@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pyxiris_patch: always_handle_notifications_in_odoo
+         Runs on install and upgrade to ensure all internal users are linked to the inbox group. -->
+    <function model="res.users" name="_compute_notification_type" eval="[obj().env['res.users'].search([]).ids]"/>
+</odoo>
