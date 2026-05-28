@@ -4090,6 +4090,31 @@ class MailThread(models.AbstractModel):
             message_type = msg_vals['message_type'] if 'message_type' in msg_vals else msg_sudo.message_type
         subtype_id = msg_vals['subtype_id'] if 'subtype_id' in msg_vals else msg_sudo.subtype_id.id
 
+        # Pyxiris_patch: always_handle_notifications_in_odoo
+        # We need to match the incoming emails to the internal users to ensure they are notified.
+        # This is for when Google Workspace is set up to "steal" mail from users if it detects odoo headers.
+        # The purpose of such a setup is to ensure users handle all coms in odoo
+        if message_type == 'email' and self.ids:
+            incoming_to = msg_vals.get('incoming_email_to', msg_sudo.incoming_email_to)
+            incoming_cc = msg_vals.get('incoming_email_cc', msg_sudo.incoming_email_cc)
+            if incoming_to or incoming_cc:
+                incoming_emails = email_split_and_format(
+                    f"{incoming_to or ''}, {incoming_cc or ''}"
+                )
+                if incoming_emails:
+                    internal_partners = self._partner_find_from_emails_single(
+                        incoming_emails,
+                        no_create=True,
+                        filter_found=lambda partner: (
+                            partner.active
+                            and not partner.partner_share
+                            and partner.user_ids.filtered(
+                                lambda user: user.active and not user.share
+                            )
+                        ),
+                    )
+                    pids = list(set(pids) | set(internal_partners.ids))
+
         # is it possible to have record but no subtype_id ?
         recipients_data = []
         # compute partner-based recipients data: followers, mentionned partner ids
@@ -4124,7 +4149,13 @@ class MailThread(models.AbstractModel):
             if pdata['active'] is False:
                 continue
             if pdata['email_normalized'] in emailed_normalized:
-                continue
+                # Pyxiris_patch: always_handle_notifications_in_odoo
+                # Direct recipient: skip external partners (already got the email),
+                # but still notify internal users. This is for when Google Workspace
+                # is set up to "steal" mail from users if it detects odoo headers.
+                # The purpose of such a setup is to ensure users handle all coms in odoo
+                if pdata['type'] != 'user':
+                    continue
             recipients_data.append(pdata)
 
         # include emails only
